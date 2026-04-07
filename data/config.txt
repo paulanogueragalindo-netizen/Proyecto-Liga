@@ -1,0 +1,8 @@
+liga=Liga Colombiana
+victoria=3
+empate=1
+derrota=0
+equipo=Atletico Nacional
+equipo=Junior FC
+equipo=Millonarios
+equipo=Santa Fe
