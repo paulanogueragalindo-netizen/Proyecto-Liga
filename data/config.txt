@@ -1,4 +1,4 @@
-liga=Liga Colombiana
+liga=Liga BetPlay Dimayor
 victoria=3
 empate=1
 derrota=0
@@ -6,3 +6,11 @@ equipo=Atletico Nacional
 equipo=Junior FC
 equipo=Millonarios
 equipo=Santa Fe
+equipo=America de Cali
+equipo=Deportivo Cali
+equipo=Deportes Tolima
+equipo=Once Caldas
+equipo=Independiente Medellin
+equipo=Atletico Bucaramanga
+equipo=Envigado FC
+equipo=La Equidad
