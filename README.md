@@ -6,7 +6,7 @@
  
 ## Descripcion del programa
  
-Este programa es una aplicacion de consola en C++ que permite gestionar una liga de futbol. Lee la configuracion de la liga (nombre, puntos y equipos) desde un archivo externo, permite registrar resultados de partidos y guarda esa informacion para que no se pierda al cerrar el programa. Tambien permite ver el historial de todos los partidos jugados. Al volver a ejecutar el programa, la liga retoma exactamente donde quedo.
+Este programa es una aplicación de consola en C++ que permite gestionar una liga de futbol. Lee la configuracion de la liga (nombre, puntos y equipos) desde un archivo externo, permite registrar resultados de partidos y guarda esa informacion para que no se pierda al cerrar el programa. Tambien permite ver el historial de todos los partidos jugados. Al volver a ejecutar el programa, la liga retoma exactamente donde quedo.
  
 ---
  
@@ -43,7 +43,7 @@ empate=<puntos por empatar>
 derrota=<puntos por perder>
 equipo=<nombre del equipo 1>
 equipo=<nombre del equipo 2>
-...
+
 ```
  
 **Ejemplo:**
@@ -63,7 +63,7 @@ Cada linea usa el formato `clave=valor`. Se pueden agregar tantos equipos como s
  
 ---
  
-## Decisiones de diseno
+## Decisiones de diseño
  
 - **Archivos externos para la configuracion:** Los datos de la liga (nombre, puntos, equipos) se leen desde `config.txt` para que el programa sea flexible y no haya que recompilar si se cambia algo.
  
