@@ -4,7 +4,6 @@
 #include <vector>
 #include <sstream>
 #include <ctime>
-#include <iomanip>
 
 struct Partido {
     std::string fecha;
@@ -26,6 +25,7 @@ struct Equipo {
     int puntos;
 };
 
+
 std::string fecha_actual() {
     time_t ahora = time(0);
     tm* t = localtime(&ahora);
@@ -40,6 +40,13 @@ std::string separar_texto(std::string texto, char cc) {
     getline(separador, palabra_individual, cc);
     getline(separador, palabra_individual, cc);
     return palabra_individual;
+}
+
+std::string columna(std::string texto, int ancho) {
+    if ((int)texto.size() < ancho) {
+        texto += std::string(ancho - texto.size(), ' ');
+    }
+    return texto;
 }
 
 int cargar_configuracion(std::string& titulo, int& puntos_victoria, int& puntos_empate, int& puntos_derrota, std::vector<std::string>& equipos) {
@@ -217,37 +224,97 @@ void ordenar_tabla(std::vector<Equipo>& tabla) {
     }
 }
 
-void mostrar_tabla(const std::vector<Equipo>& tabla) {
-    std::cout << std::left
-              << std::setw(4)  << "#"
-              << std::setw(25) << "Equipo"
-              << std::setw(5)  << "PJ"
-              << std::setw(5)  << "PG"
-              << std::setw(5)  << "PE"
-              << std::setw(5)  << "PP"
-              << std::setw(5)  << "GF"
-              << std::setw(5)  << "GC"
-              << std::setw(6)  << "DG"
-              << std::setw(5)  << "PTS"
+void imprimir_fila(int pos, const Equipo& e) {
+    std::string dg = (e.diferencia_goles >= 0 ? "+" : "") + std::to_string(e.diferencia_goles);
+    std::cout << columna(std::to_string(pos), 4)
+              << columna(e.nombre, 25)
+              << columna(std::to_string(e.partidos_jugados), 5)
+              << columna(std::to_string(e.partidos_ganados), 5)
+              << columna(std::to_string(e.partidos_empatados), 5)
+              << columna(std::to_string(e.partidos_perdidos), 5)
+              << columna(std::to_string(e.goles_favor), 5)
+              << columna(std::to_string(e.goles_contra), 5)
+              << columna(dg, 6)
+              << columna(std::to_string(e.puntos), 5)
               << std::endl;
+}
 
+void imprimir_encabezado() {
+    std::cout << columna("#", 4)
+              << columna("Equipo", 25)
+              << columna("PJ", 5)
+              << columna("PG", 5)
+              << columna("PE", 5)
+              << columna("PP", 5)
+              << columna("GF", 5)
+              << columna("GC", 5)
+              << columna("DG", 6)
+              << columna("PTS", 5)
+              << std::endl;
     std::cout << std::string(70, '-') << std::endl;
+}
+
+void mostrar_tabla(const std::vector<Equipo>& tabla) {
+    imprimir_encabezado();
+    for (int i = 0; i < (int)tabla.size(); i++) {
+        imprimir_fila(i + 1, tabla[i]);
+    }
+}
+
+void mostrar_top3(const std::vector<Equipo>& tabla) {
+    if (tabla.empty()) {
+        std::cout << "No hay partidos registrados aun." << std::endl;
+        return;
+    }
+
+    int limite = (int)tabla.size() < 3 ? (int)tabla.size() : 3;
+
+    std::cout << "\n=== TOP 3 ===" << std::endl;
+    std::cout << std::string(70, '=') << std::endl;
+    imprimir_encabezado();
+    for (int i = 0; i < limite; i++) {
+        imprimir_fila(i + 1, tabla[i]);
+    }
+    std::cout << std::string(70, '=') << std::endl;
+}
+
+void exportar_tabla(const std::vector<Equipo>& tabla) {
+    std::ofstream archivo("../../data/tabla.txt");
+    if (!archivo.is_open()) {
+        std::cout << "Error: No se pudo crear tabla.txt" << std::endl;
+        return;
+    }
+
+    archivo << columna("#", 4)
+            << columna("Equipo", 25)
+            << columna("PJ", 5)
+            << columna("PG", 5)
+            << columna("PE", 5)
+            << columna("PP", 5)
+            << columna("GF", 5)
+            << columna("GC", 5)
+            << columna("DG", 6)
+            << columna("PTS", 5)
+            << "\n";
+    archivo << std::string(70, '-') << "\n";
 
     for (int i = 0; i < (int)tabla.size(); i++) {
         std::string dg = (tabla[i].diferencia_goles >= 0 ? "+" : "") + std::to_string(tabla[i].diferencia_goles);
-        std::cout << std::left
-                  << std::setw(4)  << (i + 1)
-                  << std::setw(25) << tabla[i].nombre
-                  << std::setw(5)  << tabla[i].partidos_jugados
-                  << std::setw(5)  << tabla[i].partidos_ganados
-                  << std::setw(5)  << tabla[i].partidos_empatados
-                  << std::setw(5)  << tabla[i].partidos_perdidos
-                  << std::setw(5)  << tabla[i].goles_favor
-                  << std::setw(5)  << tabla[i].goles_contra
-                  << std::setw(6)  << dg
-                  << std::setw(5)  << tabla[i].puntos
-                  << std::endl;
+        archivo << columna(std::to_string(i + 1), 4)
+                << columna(tabla[i].nombre, 25)
+                << columna(std::to_string(tabla[i].partidos_jugados), 5)
+                << columna(std::to_string(tabla[i].partidos_ganados), 5)
+                << columna(std::to_string(tabla[i].partidos_empatados), 5)
+                << columna(std::to_string(tabla[i].partidos_perdidos), 5)
+                << columna(std::to_string(tabla[i].goles_favor), 5)
+                << columna(std::to_string(tabla[i].goles_contra), 5)
+                << columna(dg, 6)
+                << columna(std::to_string(tabla[i].puntos), 5)
+                << "\n";
     }
+
+    archivo.close();
+    std::cout << "Tabla exportada correctamente a tabla.txt" << std::endl;
 }
 
 int mostrar_menu(const std::string& titulo) {
@@ -258,7 +325,10 @@ int mostrar_menu(const std::string& titulo) {
     std::cout << "2. Registrar resultado de un partido" << std::endl;
     std::cout << "3. Ver historial de jornadas" << std::endl;
     std::cout << "4. Ver todos los partidos jugados" << std::endl;
-    std::cout << "5. Salir" << std::endl;
+    std::cout << "5. Ver Top 3 de la tabla" << std::endl;
+    std::cout << "6. Exportar tabla a tabla.txt" << std::endl;
+    std::cout << "7. Historial de enfrentamientos" << std::endl;
+    std::cout << "8. Salir" << std::endl;
     std::cout << "Escoger un numero: ";
     std::cin >> numero;
     return numero;
@@ -306,7 +376,6 @@ void registrar_partidos(std::vector<std::string>& equipos, int& numero_jornadas,
         return;
     }
 
-    // Validacion: los equipos deben ser distintos
     if (EquipoLocal == EquipoVisitante) {
         std::cout << "El equipo local y el visitante no pueden ser el mismo." << std::endl;
         return;
@@ -372,6 +441,86 @@ void fechas_partidos() {
     fechas.close();
 }
 
+void historial_enfrentamientos(const std::vector<std::string>& equipos) {
+    std::cout << "Estos son los equipos disponibles:" << std::endl;
+    for (int i = 0; i < (int)equipos.size(); i++) {
+        std::cout << " - " << equipos[i] << std::endl;
+    }
+
+    std::string equipo1, equipo2;
+    std::cout << "Introduzca el primer equipo:" << std::endl;
+    std::getline(std::cin, equipo1);
+    std::cout << "Introduzca el segundo equipo:" << std::endl;
+    std::getline(std::cin, equipo2);
+
+    bool encontrado1 = false, encontrado2 = false;
+    for (int i = 0; i < (int)equipos.size(); i++) {
+        if (equipos[i] == equipo1) encontrado1 = true;
+        if (equipos[i] == equipo2) encontrado2 = true;
+    }
+    if (!encontrado1 || !encontrado2) {
+        std::cout << "Uno o ambos equipos no existen en la liga." << std::endl;
+        return;
+    }
+    if (equipo1 == equipo2) {
+        std::cout << "Los dos equipos deben ser distintos." << std::endl;
+        return;
+    }
+
+    std::vector<Partido> partidos = leer_partidos();
+    int victorias1 = 0, victorias2 = 0, empates = 0;
+    bool hay_partidos = false;
+
+    std::cout << "\n=== HISTORIAL: " << equipo1 << " vs " << equipo2 << " ===" << std::endl;
+    std::cout << std::string(70, '-') << std::endl;
+
+    for (int i = 0; i < (int)partidos.size(); i++) {
+        bool es_enfrentamiento =
+            (partidos[i].equipo_local == equipo1 && partidos[i].equipo_visitante == equipo2) ||
+            (partidos[i].equipo_local == equipo2 && partidos[i].equipo_visitante == equipo1);
+
+        if (!es_enfrentamiento) continue;
+
+        hay_partidos = true;
+
+        int goles_e1, goles_e2;
+        if (partidos[i].equipo_local == equipo1) {
+            goles_e1 = partidos[i].goles_local;
+            goles_e2 = partidos[i].goles_visitante;
+        } else {
+            goles_e1 = partidos[i].goles_visitante;
+            goles_e2 = partidos[i].goles_local;
+        }
+
+        std::string resultado;
+        if (goles_e1 > goles_e2) {
+            resultado = "Gana " + equipo1;
+            victorias1++;
+        } else if (goles_e1 < goles_e2) {
+            resultado = "Gana " + equipo2;
+            victorias2++;
+        } else {
+            resultado = "Empate";
+            empates++;
+        }
+
+        std::cout << partidos[i].fecha << "  |  "
+                  << equipo1 << " " << goles_e1 << " - " << goles_e2 << " " << equipo2
+                  << "  |  " << resultado << std::endl;
+    }
+
+    if (!hay_partidos) {
+        std::cout << "Estos equipos aun no se han enfrentado." << std::endl;
+        return;
+    }
+
+    std::cout << std::string(70, '-') << std::endl;
+    std::cout << equipo1 << ": " << victorias1 << " victorias  |  "
+              << equipo2 << ": " << victorias2 << " victorias  |  "
+              << "Empates: " << empates << std::endl;
+}
+
+
 int main() {
     std::string titulo;
     int puntos_victoria, puntos_empate, puntos_derrota;
@@ -435,7 +584,28 @@ int main() {
                 ver_partidos();
                 break;
             }
-            case 5:
+            case 5: {
+                std::cin.ignore(1000, '\n');
+                std::vector<Partido> partidos = leer_partidos();
+                std::vector<Equipo> tabla = construir_tabla(equipos, partidos, puntos_victoria, puntos_empate, puntos_derrota);
+                ordenar_tabla(tabla);
+                mostrar_top3(tabla);
+                break;
+            }
+            case 6: {
+                std::cin.ignore(1000, '\n');
+                std::vector<Partido> partidos = leer_partidos();
+                std::vector<Equipo> tabla = construir_tabla(equipos, partidos, puntos_victoria, puntos_empate, puntos_derrota);
+                ordenar_tabla(tabla);
+                exportar_tabla(tabla);
+                break;
+            }
+            case 7: {
+                std::cin.ignore(1000, '\n');
+                historial_enfrentamientos(equipos);
+                break;
+            }
+            case 8:
                 menu = false;
                 break;
             default:
