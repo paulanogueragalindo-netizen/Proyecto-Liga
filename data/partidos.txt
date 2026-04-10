@@ -1,2 +1,1 @@
-Hoy;Junior FC;Santa Fe;3;4
-Hoy;Atletico Nacional;Millonarios;3;5
+
