@@ -5,8 +5,6 @@
 #include <sstream>
 #include <ctime>
 
-// ===================== STRUCTS =====================
-
 struct Partido {
     std::string fecha;
     std::string equipo_local;
@@ -27,7 +25,6 @@ struct Equipo {
     int puntos;
 };
 
-// ===================== UTILIDADES =====================
 
 std::string fecha_actual() {
     time_t ahora = time(0);
@@ -45,18 +42,16 @@ std::string separar_texto(std::string texto, char cc) {
     return palabra_individual;
 }
 
-// Rellena un string con espacios hasta el ancho deseado
 std::string columna(std::string texto, int ancho) {
-    if ((int)texto.size() < ancho) {
+    if (texto.size() < ancho) {
         texto += std::string(ancho - texto.size(), ' ');
     }
     return texto;
 }
 
-// ===================== ARCHIVOS =====================
 
 int cargar_configuracion(std::string& titulo, int& puntos_victoria, int& puntos_empate, int& puntos_derrota, std::vector<std::string>& equipos) {
-    std::ifstream configuracion("../../data/config.txt");
+    std::ifstream configuracion("../data/config.txt");
 
     if (!configuracion.is_open()) {
         std::cout << "Error: No se pudo abrir config.txt Verifique que el archivo existe." << std::endl;
@@ -107,7 +102,7 @@ int cargar_configuracion(std::string& titulo, int& puntos_victoria, int& puntos_
 
 std::vector<Partido> leer_partidos() {
     std::vector<Partido> partidos;
-    std::ifstream archivo("../../data/partidos.txt");
+    std::ifstream archivo("../data/partidos.txt");
 
     if (!archivo.is_open()) {
         return partidos;
@@ -137,8 +132,8 @@ std::vector<Partido> leer_partidos() {
     return partidos;
 }
 
-void guardar_partido_archivo(const Partido& p) {
-    std::ofstream archivo("../../data/partidos.txt", std::ios::app);
+void guardar_partido_archivo(Partido& p) {
+    std::ofstream archivo("../data/partidos.txt", std::ios::app);
     if (!archivo.is_open()) {
         std::cout << "Error: No se pudo abrir partidos.txt para escritura." << std::endl;
         return;
@@ -148,8 +143,8 @@ void guardar_partido_archivo(const Partido& p) {
     archivo.close();
 }
 
-void guardar_jornada_archivo(const Partido& p, int& numero_jornadas, int& numero_partidos_jornada_actual, int total_equipos) {
-    std::ofstream archivo("../../data/fechas.txt", std::ios::app);
+void guardar_jornada_archivo(Partido& p, int& numero_jornadas, int& numero_partidos_jornada_actual, int total_equipos) {
+    std::ofstream archivo("../data/fechas.txt", std::ios::app);
     if (!archivo.is_open()) {
         std::cout << "Error: No se pudo abrir fechas.txt para escritura." << std::endl;
         return;
@@ -165,10 +160,6 @@ void guardar_jornada_archivo(const Partido& p, int& numero_jornadas, int& numero
     }
     archivo.close();
 }
-
-// ===================== LOGICA DE LA LIGA =====================
-
-// Usa puntero para modificar directamente el equipo (uso obligatorio de punteros)
 void actualizar_estadisticas(Equipo* equipo, int goles_favor, int goles_contra, int puntos_victoria, int puntos_empate, int puntos_derrota) {
     equipo->partidos_jugados++;
     equipo->goles_favor  += goles_favor;
@@ -187,12 +178,12 @@ void actualizar_estadisticas(Equipo* equipo, int goles_favor, int goles_contra, 
     }
 }
 
-std::vector<Equipo> construir_tabla(const std::vector<std::string>& nombres_equipos,
-                                    const std::vector<Partido>& partidos,
+std::vector<Equipo> construir_tabla(std::vector<std::string>& nombres_equipos,
+                                    std::vector<Partido>& partidos,
                                     int puntos_victoria, int puntos_empate, int puntos_derrota) {
     std::vector<Equipo> tabla;
 
-    for (int i = 0; i < (int)nombres_equipos.size(); i++) {
+    for (int i = 0; i < nombres_equipos.size(); i++) {
         Equipo e;
         e.nombre             = nombres_equipos[i];
         e.partidos_jugados   = 0;
@@ -206,8 +197,8 @@ std::vector<Equipo> construir_tabla(const std::vector<std::string>& nombres_equi
         tabla.push_back(e);
     }
 
-    for (int i = 0; i < (int)partidos.size(); i++) {
-        for (int j = 0; j < (int)tabla.size(); j++) {
+    for (int i = 0; i < partidos.size(); i++) {
+        for (int j = 0; j < tabla.size(); j++) {
             if (tabla[j].nombre == partidos[i].equipo_local) {
                 actualizar_estadisticas(&tabla[j], partidos[i].goles_local, partidos[i].goles_visitante,
                                         puntos_victoria, puntos_empate, puntos_derrota);
@@ -221,10 +212,9 @@ std::vector<Equipo> construir_tabla(const std::vector<std::string>& nombres_equi
     return tabla;
 }
 
-// Ordena por puntos, desempata por diferencia de goles y luego por goles a favor
 void ordenar_tabla(std::vector<Equipo>& tabla) {
-    for (int i = 0; i < (int)tabla.size() - 1; i++) {
-        for (int j = i + 1; j < (int)tabla.size(); j++) {
+    for (int i = 0; i < tabla.size() - 1; i++) {
+        for (int j = i + 1; j < tabla.size(); j++) {
             bool intercambiar = false;
 
             if (tabla[j].puntos > tabla[i].puntos) {
@@ -247,9 +237,11 @@ void ordenar_tabla(std::vector<Equipo>& tabla) {
         }
     }
 }
-// Imprime una fila de la tabla usando columna() en vez de setw
-void imprimir_fila(int pos, const Equipo& e) {
-    std::string dg = (e.diferencia_goles >= 0 ? "+" : "") + std::to_string(e.diferencia_goles);
+
+void imprimir_fila(int pos, Equipo& e) {
+    std::string dg;
+    if(e.diferencia_goles >= 0) dg = "+";
+    dg += std::to_string(e.diferencia_goles);
     std::cout << columna(std::to_string(pos), 4)
               << columna(e.nombre, 25)
               << columna(std::to_string(e.partidos_jugados), 5)
@@ -278,20 +270,22 @@ void imprimir_encabezado() {
     std::cout << std::string(70, '-') << std::endl;
 }
 
-void mostrar_tabla(const std::vector<Equipo>& tabla) {
+void mostrar_tabla(std::vector<Equipo>& tabla) {
     imprimir_encabezado();
-    for (int i = 0; i < (int)tabla.size(); i++) {
+    for (int i = 0; i < tabla.size(); i++) {
         imprimir_fila(i + 1, tabla[i]);
     }
 }
 
-void mostrar_top3(const std::vector<Equipo>& tabla) {
+void mostrar_top3(std::vector<Equipo>& tabla) {
     if (tabla.empty()) {
         std::cout << "No hay partidos registrados aun." << std::endl;
         return;
     }
 
-    int limite = (int)tabla.size() < 3 ? (int)tabla.size() : 3;
+    int limite;
+    if(tabla.size() < 3) limite = tabla.size();
+    else limite = 3;
 
     std::cout << "\n=== TOP 3 ===" << std::endl;
     std::cout << std::string(70, '=') << std::endl;
@@ -302,8 +296,8 @@ void mostrar_top3(const std::vector<Equipo>& tabla) {
     std::cout << std::string(70, '=') << std::endl;
 }
 
-void exportar_tabla(const std::vector<Equipo>& tabla) {
-    std::ofstream archivo("../../data/tabla.txt");
+void exportar_tabla(std::vector<Equipo>& tabla) {
+    std::ofstream archivo("../data/tabla.txt");
     if (!archivo.is_open()) {
         std::cout << "Error: No se pudo crear tabla.txt" << std::endl;
         return;
@@ -322,8 +316,11 @@ void exportar_tabla(const std::vector<Equipo>& tabla) {
             << "\n";
     archivo << std::string(70, '-') << "\n";
 
-    for (int i = 0; i < (int)tabla.size(); i++) {
-        std::string dg = (tabla[i].diferencia_goles >= 0 ? "+" : "") + std::to_string(tabla[i].diferencia_goles);
+    for (int i = 0; i < tabla.size(); i++) {
+        std::string dg;
+        if(tabla[i].diferencia_goles >= 0) dg = "+";
+        dg += std::to_string(tabla[i].diferencia_goles);
+
         archivo << columna(std::to_string(i + 1), 4)
                 << columna(tabla[i].nombre, 25)
                 << columna(std::to_string(tabla[i].partidos_jugados), 5)
@@ -341,8 +338,7 @@ void exportar_tabla(const std::vector<Equipo>& tabla) {
     std::cout << "Tabla exportada correctamente a tabla.txt" << std::endl;
 }
 
-// Permite corregir el marcador de un partido ya registrado
-void editar_resultado(const std::vector<std::string>& equipos) {
+void editar_resultado() {
     std::vector<Partido> partidos = leer_partidos();
 
     if (partidos.empty()) {
@@ -350,9 +346,8 @@ void editar_resultado(const std::vector<std::string>& equipos) {
         return;
     }
 
-    // Mostrar todos los partidos numerados
     std::cout << "\n=== PARTIDOS REGISTRADOS ===" << std::endl;
-    for (int i = 0; i < (int)partidos.size(); i++) {
+    for (int i = 0; i < partidos.size(); i++) {
         std::cout << (i + 1) << ". "
                   << partidos[i].fecha << "  |  "
                   << partidos[i].equipo_local << " "
@@ -368,7 +363,7 @@ void editar_resultado(const std::vector<std::string>& equipos) {
 
     if (seleccion == 0) return;
 
-    if (seleccion < 1 || seleccion > (int)partidos.size()) {
+    if (seleccion < 1 || seleccion > partidos.size()) {
         std::cout << "Numero de partido invalido." << std::endl;
         return;
     }
@@ -392,17 +387,15 @@ void editar_resultado(const std::vector<std::string>& equipos) {
         return;
     }
 
-    // Aplicar el cambio en memoria
     partidos[indice].goles_local      = nuevo_local;
     partidos[indice].goles_visitante  = nuevo_visitante;
 
-    // Reescribir partidos.txt completo con el partido corregido
-    std::ofstream archivo("../../data/partidos.txt");
+    std::ofstream archivo("../data/partidos.txt");
     if (!archivo.is_open()) {
         std::cout << "Error: No se pudo abrir partidos.txt para escritura." << std::endl;
         return;
     }
-    for (int i = 0; i < (int)partidos.size(); i++) {
+    for (int i = 0; i < partidos.size(); i++) {
         archivo << partidos[i].fecha << ";"
                 << partidos[i].equipo_local << ";"
                 << partidos[i].equipo_visitante << ";"
@@ -414,9 +407,7 @@ void editar_resultado(const std::vector<std::string>& equipos) {
     std::cout << "Resultado actualizado correctamente." << std::endl;
 }
 
-// ===================== FUNCIONES DE INTERFAZ =====================
-
-int mostrar_menu(const std::string& titulo) {
+int mostrar_menu(std::string& titulo) {
     int numero;
     std::cout << "\nMenu: " << titulo << std::endl;
     std::cout << "Tiene las siguientes opciones:" << std::endl;
@@ -436,7 +427,7 @@ int mostrar_menu(const std::string& titulo) {
 
 void registrar_partidos(std::vector<std::string>& equipos, int& numero_jornadas, int& numero_partidos_jornada_actual) {
     std::cout << "Estos son los equipos disponibles:" << std::endl;
-    for (int pos = 0; pos < (int)equipos.size(); pos++) {
+    for (int pos = 0; pos < equipos.size(); pos++) {
         std::cout << " - " << equipos[pos] << std::endl;
     }
 
@@ -455,7 +446,7 @@ void registrar_partidos(std::vector<std::string>& equipos, int& numero_jornadas,
     std::cin >> puntaje_visitante;
 
     bool encontrado_local = false;
-    for (int i = 0; i < (int)equipos.size(); i++) {
+    for (int i = 0; i < equipos.size(); i++) {
         if (equipos[i] == EquipoLocal) {
             encontrado_local = true;
         }
@@ -466,7 +457,7 @@ void registrar_partidos(std::vector<std::string>& equipos, int& numero_jornadas,
     }
 
     bool encontrado_visitante = false;
-    for (int i = 0; i < (int)equipos.size(); i++) {
+    for (int i = 0; i < equipos.size(); i++) {
         if (equipos[i] == EquipoVisitante) {
             encontrado_visitante = true;
         }
@@ -486,11 +477,10 @@ void registrar_partidos(std::vector<std::string>& equipos, int& numero_jornadas,
         return;
     }
 
-    // Deteccion de partido duplicado en la jornada actual
     std::vector<Partido> partidos_existentes = leer_partidos();
-    // Contar cuantos partidos hay en la jornada actual para saber donde empieza
+    
     int partidos_jornadas_anteriores = 0;
-    std::ifstream fechas_check("../../data/fechas.txt");
+    std::ifstream fechas_check("../data/fechas.txt");
     std::string linea_check;
     int jornada_actual = 1;
     int contador_jornada = 0;
@@ -505,8 +495,7 @@ void registrar_partidos(std::vector<std::string>& equipos, int& numero_jornadas,
     }
     fechas_check.close();
 
-    // Revisar solo los partidos de la jornada actual
-    for (int i = partidos_jornadas_anteriores; i < (int)partidos_existentes.size(); i++) {
+    for (int i = partidos_jornadas_anteriores; i < partidos_existentes.size(); i++) {
         bool mismo_enfrentamiento =
             (partidos_existentes[i].equipo_local == EquipoLocal && partidos_existentes[i].equipo_visitante == EquipoVisitante) ||
             (partidos_existentes[i].equipo_local == EquipoVisitante && partidos_existentes[i].equipo_visitante == EquipoLocal);
@@ -530,7 +519,7 @@ void registrar_partidos(std::vector<std::string>& equipos, int& numero_jornadas,
 }
 
 void ver_partidos() {
-    std::ifstream partidos("../../data/partidos.txt");
+    std::ifstream partidos("../data/partidos.txt");
     if (!partidos.is_open()) {
         std::cout << "Error: No se pudo abrir partidos.txt" << std::endl;
         return;
@@ -548,7 +537,7 @@ void ver_partidos() {
 }
 
 void fechas_partidos() {
-    std::ifstream fechas("../../data/fechas.txt");
+    std::ifstream fechas("../data/fechas.txt");
     if (!fechas.is_open()) {
         std::cout << "Error: No se pudo abrir fechas.txt" << std::endl;
         return;
@@ -571,9 +560,9 @@ void fechas_partidos() {
     fechas.close();
 }
 
-void historial_enfrentamientos(const std::vector<std::string>& equipos) {
+void historial_enfrentamientos(std::vector<std::string>& equipos) {
     std::cout << "Estos son los equipos disponibles:" << std::endl;
-    for (int i = 0; i < (int)equipos.size(); i++) {
+    for (int i = 0; i < equipos.size(); i++) {
         std::cout << " - " << equipos[i] << std::endl;
     }
 
@@ -584,7 +573,7 @@ void historial_enfrentamientos(const std::vector<std::string>& equipos) {
     std::getline(std::cin, equipo2);
 
     bool encontrado1 = false, encontrado2 = false;
-    for (int i = 0; i < (int)equipos.size(); i++) {
+    for (int i = 0; i < equipos.size(); i++) {
         if (equipos[i] == equipo1) encontrado1 = true;
         if (equipos[i] == equipo2) encontrado2 = true;
     }
@@ -604,7 +593,7 @@ void historial_enfrentamientos(const std::vector<std::string>& equipos) {
     std::cout << "\n=== HISTORIAL: " << equipo1 << " vs " << equipo2 << " ===" << std::endl;
     std::cout << std::string(70, '-') << std::endl;
 
-    for (int i = 0; i < (int)partidos.size(); i++) {
+    for (int i = 0; i < partidos.size(); i++) {
         bool es_enfrentamiento =
             (partidos[i].equipo_local == equipo1 && partidos[i].equipo_visitante == equipo2) ||
             (partidos[i].equipo_local == equipo2 && partidos[i].equipo_visitante == equipo1);
@@ -650,8 +639,6 @@ void historial_enfrentamientos(const std::vector<std::string>& equipos) {
               << "Empates: " << empates << std::endl;
 }
 
-// ===================== MAIN =====================
-
 int main() {
     std::string titulo;
     int puntos_victoria, puntos_empate, puntos_derrota;
@@ -664,7 +651,7 @@ int main() {
     int numero_jornadas = 0;
     int numero_partidos_jornada_actual = 0;
     std::string linea;
-    std::ifstream fechas("../../data/fechas.txt");
+    std::ifstream fechas("../data/fechas.txt");
     while (getline(fechas, linea)) {
         if (linea.substr(0, 7) == "JORNADA") {
             numero_jornadas++;
@@ -677,7 +664,7 @@ int main() {
     fechas.close();
 
     if (numero_jornadas == 0) {
-        std::ofstream init_fechas("../../data/fechas.txt");
+        std::ofstream init_fechas("../data/fechas.txt");
         if (!init_fechas.is_open()) {
             std::cout << "Error: No se pudo crear fechas.txt" << std::endl;
             return 1;
@@ -738,7 +725,7 @@ int main() {
             }
             case 8: {
                 std::cin.ignore(1000, '\n');
-                editar_resultado(equipos);
+                editar_resultado();
                 break;
             }
             case 9:

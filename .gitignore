@@ -1,3 +1,11 @@
 *.exe
 *.out
 output/
+
+build/
+bin/
+.vscode/
+.idea/
+
+.DS_Store
+Thumbs.db
