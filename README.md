@@ -4,13 +4,13 @@
  
 ---
  
-## Descripcion del programa
+## Descripción del programa
  
-Este programa es una aplicación de consola en C++ que permite gestionar una liga de futbol. Lee la configuracion de la liga (nombre, puntos y equipos) desde un archivo externo, permite registrar resultados de partidos y guarda esa informacion para que no se pierda al cerrar el programa. Tambien permite ver el historial de todos los partidos jugados. Al volver a ejecutar el programa, la liga retoma exactamente donde quedo.
+Este programa es una aplicación de consola en C++ que permite gestionar una liga de fútbol. Lee la configuración de la liga desde un archivo externo, registra resultados de partidos y guarda toda la información de forma persistente para que no se pierda al cerrar el programa. Calcula automáticamente la tabla de posiciones ordenada por puntos, diferencia de goles y goles a favor, y la actualiza cada vez que se registra o edita un resultado. También permite consultar el historial de jornadas, ver enfrentamientos entre dos equipos específicos, exportar la tabla a un archivo de texto y editar resultados ya registrados. Al volver a ejecutar el programa, la liga retoma exactamente donde quedó.
  
 ---
  
-## Como compilar
+## Cómo compilar
  
 Desde la carpeta donde esta el archivo `main.cpp`, ejecuta este comando:
  
@@ -20,15 +20,15 @@ g++ main.cpp
  
 ---
  
-## Como ejecutar
+## Cómo ejecutar
  
-Despues de compilar, ejecuta:
+Después de compilar, ejecuta:
  
 ```
 ./a.exe
 ```
  
-> Asegurate de que los archivos `config.txt` y `partidos.txt` esten en la carpeta `../data/` relativa al ejecutable.
+> Asegúrate de que los archivos `config.txt` y `partidos.txt` estén en la carpeta `../data/` relativa al ejecutable.
  
 ---
  
@@ -59,18 +59,19 @@ equipo=Millonarios
 equipo=Santa Fe
 ```
  
-Cada linea usa el formato `clave=valor`. Se pueden agregar tantos equipos como se quiera usando una linea `equipo=` por cada uno.
+Cada línea usa el formato `clave=valor`. Se pueden agregar tantos equipos como se quiera usando una línea `equipo=` por cada uno.
  
 ---
  
 ## Decisiones de diseño
  
-- **Archivos externos para la configuracion:** Los datos de la liga (nombre, puntos, equipos) se leen desde `config.txt` para que el programa sea flexible y no haya que recompilar si se cambia algo.
- 
-- **Persistencia con archivo de texto:** Los partidos se guardan en `partidos.txt` usando el modo de escritura `append` (`ios::app`), lo que permite que cada resultado nuevo se agregue sin borrar los anteriores. Asi el historial se mantiene aunque se cierre el programa.
- 
-- **Validacion de equipos:** Antes de registrar un partido, el programa verifica que los dos equipos ingresados existan en la lista cargada desde `config.txt`. Si alguno no existe, el registro se cancela.
- 
-- **Menu en bucle:** El programa usa un `do-while` para que el usuario pueda realizar varias acciones sin necesidad de volver a ejecutarlo.
- 
-- **Separacion de funciones:** La logica se divide en funciones independientes (`cargar_configuracion`, `registrar_equipo`, `ver_partidos`) para que el codigo sea mas facil de leer y mantener.
+- **Recálculo dinámico de la tabla:** La tabla se construye desde cero cada vez que se solicita, leyendo `partidos.txt`. Esto garantiza que siempre esté sincronizada con los datos reales, incluso si se edita un resultado anterior.
+
+- **Separación entre partidos y jornadas:** `partidos.txt` guarda los resultados en formato plano para facilitar el cálculo de la tabla, mientras que `fechas.txt` organiza esos mismos partidos en jornadas con marcadores `JORNADA=N` y `FIN_JORNADA` para el historial.
+
+- **Puntos configurables:** Los puntos por victoria, empate y derrota se leen desde `config.txt`, lo que permite adaptar el programa a distintas ligas sin modificar ni recompilar el código.
+
+- **Criterios de desempate:** La tabla se ordena por puntos, luego por diferencia de goles y finalmente por goles a favor, reflejando los criterios reales usados en la mayoría de ligas de fútbol.
+
+- **Validación de partidos duplicados:** Antes de registrar un partido, el programa verifica que ese enfrentamiento no exista ya en la jornada actual, evitando registros repetidos sin bloquear que los mismos equipos se enfrenten en jornadas distintas.
+
